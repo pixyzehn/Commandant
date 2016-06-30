@@ -32,14 +32,14 @@ public struct HelpCommand<ClientError: ClientErrorType>: CommandType {
 		self.registry = registry
 	}
 
-	public func run(options: Options) -> Result<(), ClientError> {
+	public func run(_ options: Options) -> Result<(), ClientError> {
 		if let verb = options.verb {
 			if let command = self.registry[verb] {
 				print(command.function)
 				if let usageError = command.usage() {
 					print("\n\(usageError)")
 				}
-				return .Success(())
+				return .success(())
 			} else {
 				fputs("Unrecognized command: '\(verb)'\n", stderr)
 			}
@@ -54,7 +54,7 @@ public struct HelpCommand<ClientError: ClientErrorType>: CommandType {
 			print("   \(command.verb)\(String(padding))   \(command.function)")
 		}
 
-		return .Success(())
+		return .success(())
 	}
 }
 
@@ -69,7 +69,7 @@ public struct HelpOptions<ClientError: ClientErrorType>: OptionsType {
 		return self.init(verb: (verb == "" ? nil : verb))
 	}
 
-	public static func evaluate(m: CommandMode) -> Result<HelpOptions, CommandantError<ClientError>> {
+	public static func evaluate(_ m: CommandMode) -> Result<HelpOptions, CommandantError<ClientError>> {
 		return create
 			<*> m <| Argument(defaultValue: "", usage: "the command to display help for")
 	}

@@ -107,7 +107,7 @@ struct TestOptions: OptionsType, Equatable {
 		} } } } } } } }
 	}
 
-	static func evaluate(m: CommandMode) -> Result<TestOptions, CommandantError<NoError>> {
+	static func evaluate(_ m: CommandMode) -> Result<TestOptions, CommandantError<NoError>> {
 		return create
 			<*> m <| Option(key: "intValue", defaultValue: 42, usage: "Some integer value")
 			<*> m <| Option(key: "stringValue", defaultValue: "foobar", usage: "Some string value")

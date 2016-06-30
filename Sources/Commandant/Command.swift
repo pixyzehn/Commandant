@@ -26,7 +26,7 @@ public protocol CommandType {
 	var function: String { get }
 
 	/// Runs this subcommand with the given options.
-	func run(options: Options) -> Result<(), ClientError>
+	func run(_ options: Options) -> Result<(), ClientError>
 }
 
 /// A type-erased command.
@@ -34,7 +34,7 @@ public struct CommandWrapper<ClientError: ClientErrorType> {
 	public let verb: String
 	public let function: String
 	
-	public let run: ArgumentParser -> Result<(), CommandantError<ClientError>>
+	public let run: (ArgumentParser) -> Result<(), CommandantError<ClientError>>
 	
 	public let usage: () -> CommandantError<ClientError>?
 
@@ -46,17 +46,17 @@ public struct CommandWrapper<ClientError: ClientErrorType> {
 			let options = C.Options.evaluate(.Arguments(arguments))
 
 			if let remainingArguments = arguments.remainingArguments {
-				return .Failure(unrecognizedArgumentsError(remainingArguments))
+				return .failure(unrecognizedArgumentsError(remainingArguments))
 			}
 
 			switch options {
-			case let .Success(options):
+			case let .success(options):
 				return command
 					.run(options)
 					.mapError(CommandantError.CommandError)
 
-			case let .Failure(error):
-				return .Failure(error)
+			case let .failure(error):
+				return .failure(error)
 			}
 		}
 		usage = { () -> CommandantError<ClientError>? in
@@ -98,7 +98,7 @@ public final class CommandRegistry<ClientError: ClientErrorType> {
 	/// arguments.
 	///
 	/// Returns the results of the execution, or nil if no such command exists.
-	public func runCommand(verb: String, arguments: [String]) -> Result<(), CommandantError<ClientError>>? {
+	public func runCommand(_ verb: String, arguments: [String]) -> Result<(), CommandantError<ClientError>>? {
 		return self[verb]?.run(ArgumentParser(arguments))
 	}
 
@@ -127,7 +127,7 @@ extension CommandRegistry {
 	/// If a matching command could not be found or a usage error occurred,
 	/// a helpful error message will be written to `stderr`, then the process
 	/// will exit with a failure error code.
-	@noreturn public func main(defaultVerb defaultVerb: String, errorHandler: ClientError -> ()) {
+	@noreturn public func main(defaultVerb: String, errorHandler: (ClientError) -> ()) {
 		main(arguments: Process.arguments, defaultVerb: defaultVerb, errorHandler: errorHandler)
 	}
 	
@@ -148,7 +148,7 @@ extension CommandRegistry {
 	/// If a matching command could not be found or a usage error occurred,
 	/// a helpful error message will be written to `stderr`, then the process
 	/// will exit with a failure error code.
-	@noreturn public func main(arguments arguments: [String], defaultVerb: String, errorHandler: ClientError -> ()) {
+	@noreturn public func main(arguments: [String], defaultVerb: String, errorHandler: (ClientError) -> ()) {
 		assert(arguments.count >= 1)
 
 		var arguments = arguments
@@ -163,10 +163,10 @@ extension CommandRegistry {
 		}
 
 		switch runCommand(verb, arguments: arguments) {
-		case .Success?:
+		case .success?:
 			exit(EXIT_SUCCESS)
 
-		case let .Failure(error)?:
+		case let .failure(error)?:
 			switch error {
 			case let .UsageError(description):
 				fputs(description + "\n", stderr)
@@ -191,11 +191,11 @@ extension CommandRegistry {
 	/// name must be in the form of `executable-verb`.
 	///
 	/// - Returns: The exit status of found subcommand or nil.
-	private func executeSubcommandIfExists(executableName: String, verb: String, arguments: [String]) -> Int32? {
+	private func executeSubcommandIfExists(_ executableName: String, verb: String, arguments: [String]) -> Int32? {
 		let subcommand = "\(NSString(string: executableName).lastPathComponent)-\(verb)"
 
-		func launchTask(path: String, arguments: [String]) -> Int32 {
-			let task = NSTask()
+		func launchTask(_ path: String, arguments: [String]) -> Int32 {
+			let task = Task()
 			task.launchPath = path
 			task.arguments = arguments
 

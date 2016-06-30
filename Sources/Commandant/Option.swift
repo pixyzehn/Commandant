@@ -26,7 +26,7 @@ import Result
 ///				return LogOptions(verbosity: verbosity, outputFilename: outputFilename, logName: logName)
 ///			}
 ///
-///			static func evaluate(m: CommandMode) -> Result<LogOptions, CommandantError<YourErrorType>> {
+///			static func evaluate(_ m: CommandMode) -> Result<LogOptions, CommandantError<YourErrorType>> {
 ///				return create
 ///					<*> m <| Option(key: "verbose", defaultValue: 0, usage: "the verbosity level with which to read the logs")
 ///					<*> m <| Option(key: "outputFilename", defaultValue: "", usage: "a file to print output to, instead of stdout")
@@ -40,15 +40,15 @@ public protocol OptionsType {
 	/// Evaluates this set of options in the given mode.
 	///
 	/// Returns the parsed options or a `UsageError`.
-	static func evaluate(m: CommandMode) -> Result<Self, CommandantError<ClientError>>
+	static func evaluate(_ m: CommandMode) -> Result<Self, CommandantError<ClientError>>
 }
 
 /// An `OptionsType` that has no options.
 public struct NoOptions<ClientError: ClientErrorType>: OptionsType {
 	public init() {}
 	
-	public static func evaluate(m: CommandMode) -> Result<NoOptions, CommandantError<ClientError>> {
-		return .Success(NoOptions())
+	public static func evaluate(_ m: CommandMode) -> Result<NoOptions, CommandantError<ClientError>> {
+		return .success(NoOptions())
 	}
 }
 
@@ -122,7 +122,7 @@ infix operator <| {
 ///
 /// In the context of command-line option parsing, this is used to chain
 /// together the parsing of multiple arguments. See OptionsType for an example.
-public func <*> <T, U, ClientError>(f: T -> U, value: Result<T, CommandantError<ClientError>>) -> Result<U, CommandantError<ClientError>> {
+public func <*> <T, U, ClientError>(f: (T) -> U, value: Result<T, CommandantError<ClientError>>) -> Result<U, CommandantError<ClientError>> {
 	return value.map(f)
 }
 
@@ -130,20 +130,20 @@ public func <*> <T, U, ClientError>(f: T -> U, value: Result<T, CommandantError<
 ///
 /// In the context of command-line option parsing, this is used to chain
 /// together the parsing of multiple arguments. See OptionsType for an example.
-public func <*> <T, U, ClientError>(f: Result<(T -> U), CommandantError<ClientError>>, value: Result<T, CommandantError<ClientError>>) -> Result<U, CommandantError<ClientError>> {
+public func <*> <T, U, ClientError>(f: Result<((T) -> U), CommandantError<ClientError>>, value: Result<T, CommandantError<ClientError>>) -> Result<U, CommandantError<ClientError>> {
 	switch (f, value) {
-	case let (.Failure(left), .Failure(right)):
-		return .Failure(combineUsageErrors(left, right))
+	case let (.failure(left), .failure(right)):
+		return .failure(combineUsageErrors(left, right))
 
-	case let (.Failure(left), .Success):
-		return .Failure(left)
+	case let (.failure(left), .success):
+		return .failure(left)
 
-	case let (.Success, .Failure(right)):
-		return .Failure(right)
+	case let (.success, .failure(right)):
+		return .failure(right)
 
-	case let (.Success(f), .Success(value)):
+	case let (.success(f), .success(value)):
 		let newValue = f(value)
-		return .Success(newValue)
+		return .success(newValue)
 	}
 }
 
@@ -168,13 +168,13 @@ public func <| <T: ArgumentType, ClientError>(mode: CommandMode, option: Option<
 	case let .Arguments(arguments):
 		var stringValue: String?
 		switch arguments.consumeValueForKey(key) {
-		case let .Success(value):
+		case let .success(value):
 			stringValue = value
 
-		case let .Failure(error):
+		case let .failure(error):
 			switch error {
 			case let .UsageError(description):
-				return .Failure(.UsageError(description: description))
+				return .failure(.UsageError(description: description))
 
 			case .CommandError:
 				fatalError("CommandError should be impossible when parameterized over NoError")
@@ -183,17 +183,17 @@ public func <| <T: ArgumentType, ClientError>(mode: CommandMode, option: Option<
 
 		if let stringValue = stringValue {
 			if let value = T.fromString(stringValue) {
-				return .Success(value)
+				return .success(value)
 			}
 			
 			let description = "Invalid value for '--\(key)': \(stringValue)"
-			return .Failure(.UsageError(description: description))
+			return .failure(.UsageError(description: description))
 		} else {
-			return .Success(option.defaultValue)
+			return .success(option.defaultValue)
 		}
 
 	case .Usage:
-		return .Failure(informativeUsageError(option))
+		return .failure(informativeUsageError(option))
 	}
 }
 
@@ -205,12 +205,12 @@ public func <| <ClientError>(mode: CommandMode, option: Option<Bool>) -> Result<
 	switch mode {
 	case let .Arguments(arguments):
 		if let value = arguments.consumeBooleanKey(option.key) {
-			return .Success(value)
+			return .success(value)
 		} else {
-			return .Success(option.defaultValue)
+			return .success(option.defaultValue)
 		}
 
 	case .Usage:
-		return .Failure(informativeUsageError(option))
+		return .failure(informativeUsageError(option))
 	}
 }

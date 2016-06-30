@@ -56,9 +56,9 @@ public func <| <ClientError> (mode: CommandMode, option: Switch) -> Result<Bool,
 		if let flag = option.flag {
 			enabled = arguments.consumeBooleanFlag(flag)
 		}
-		return .Success(enabled)
+		return .success(enabled)
 
 	case .Usage:
-		return .Failure(informativeUsageError(option.description, usage: option.usage))
+		return .failure(informativeUsageError(option.description, usage: option.usage))
 	}
 }
