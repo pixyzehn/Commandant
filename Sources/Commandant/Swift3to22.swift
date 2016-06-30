@@ -53,18 +53,3 @@ import Foundation
 	}
 
 #endif
-
-// swift-corelibs-foundation is still written in Swift 2 API.
-#if !swift(>=3) || os(Linux)
-	extension NSCharacterSet {
-		class func newline() -> NSCharacterSet {
-			return newlineCharacterSet()
-		}
-	}
-
-	extension String {
-		func componentsSeparatedByCharacters(in separator: NSCharacterSet) -> [String] {
-			return componentsSeparatedByCharactersInSet(separator)
-		}
-	}
-#endif
