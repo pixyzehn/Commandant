@@ -173,7 +173,7 @@ public final class ArgumentParser {
 	/// list of arguments remaining.
 	internal func consumeBooleanFlag(_ flag: Character) -> Bool {
 		for (index, arg) in rawArguments.enumerated() {
-			if case let .Flag(flags) = arg where flags.contains(flag) {
+			if case let .Flag(flags) = arg, flags.contains(flag) {
 				var flags = flags
 				flags.remove(flag)
 
