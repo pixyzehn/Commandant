@@ -10,7 +10,11 @@ import Foundation
 import Result
 
 #if swift(>=3)
-	public typealias ClientErrorType = Error
+	#if os(Linux)
+		public typealias ClientErrorType = Error
+	#else
+		public typealias ClientErrorType = ErrorProtocol
+	#endif
 #else
 	public typealias ClientErrorType = ErrorType
 #endif
