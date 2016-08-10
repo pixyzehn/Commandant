@@ -33,6 +33,6 @@ struct NoOptionsCommand: CommandType {
 	var function: String { return "function" }
 
 	func run(options: NoOptions<CommandantError<()>>) -> Result<(), CommandantError<()>> {
-		return .Success()
+		return .success()
 	}
 }

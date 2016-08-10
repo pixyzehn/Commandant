@@ -96,7 +96,7 @@ public final class ArgumentParser {
 	///
 	/// If the key is found, it is then removed from the list of arguments
 	/// remaining to be parsed.
-	internal func consumeBooleanKey(key: String) -> Bool? {
+	internal func consumeBooleanKey(_ key: String) -> Bool? {
 		let oldArguments = rawArguments
 		rawArguments.removeAll()
 
@@ -120,7 +120,7 @@ public final class ArgumentParser {
 	///
 	/// If a value is found, the key and the value are both removed from the
 	/// list of arguments remaining to be parsed.
-	internal func consumeValueForKey(key: String) -> Result<String?, CommandantError<NoError>> {
+	internal func consumeValueForKey(_ key: String) -> Result<String?, CommandantError<NoError>> {
 		let oldArguments = rawArguments
 		rawArguments.removeAll()
 
@@ -138,13 +138,13 @@ public final class ArgumentParser {
 
 			index += 1
 			guard index < oldArguments.count, case let .Value(value) = oldArguments[index] else {
-				return .Failure(missingArgumentError("--\(key)"))
+				return .failure(missingArgumentError("--\(key)"))
 			}
 
 			foundValue = value
 		}
 
-		return .Success(foundValue)
+		return .success(foundValue)
 	}
 
 	/// Returns the next positional argument that hasn't yet been returned, or
@@ -162,7 +162,7 @@ public final class ArgumentParser {
 
 	/// Returns whether the given key was specified and removes it from the
 	/// list of arguments remaining.
-	internal func consumeKey(key: String) -> Bool {
+	internal func consumeKey(_ key: String) -> Bool {
 		let oldArguments = rawArguments
 		rawArguments = oldArguments.filter { $0 != .Key(key) }
 
@@ -171,9 +171,9 @@ public final class ArgumentParser {
 
 	/// Returns whether the given flag was specified and removes it from the
 	/// list of arguments remaining.
-	internal func consumeBooleanFlag(flag: Character) -> Bool {
+	internal func consumeBooleanFlag(_ flag: Character) -> Bool {
 		for (index, arg) in rawArguments.enumerated() {
-			if case let .Flag(flags) = arg where flags.contains(flag) {
+			if case let .Flag(flags) = arg, flags.contains(flag) {
 				var flags = flags
 				flags.remove(flag)
 
