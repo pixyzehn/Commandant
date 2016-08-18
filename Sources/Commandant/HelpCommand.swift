@@ -59,7 +59,7 @@ public struct HelpCommand<ClientError: ClientErrorType>: CommandType {
 }
 
 public struct HelpOptions<ClientError: ClientErrorType>: OptionsType {
-	private let verb: String?
+	fileprivate let verb: String?
 	
 	private init(verb: String?) {
 		self.verb = verb

@@ -39,7 +39,7 @@ private func ==(lhs: RawArgument, rhs: RawArgument) -> Bool {
 }
 
 extension RawArgument: CustomStringConvertible {
-	private var description: String {
+	fileprivate var description: String {
 		switch self {
 		case let .Key(key):
 			return "--\(key)"

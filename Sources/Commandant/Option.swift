@@ -109,14 +109,18 @@ extension Option: CustomStringConvertible {
 	OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 	WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-infix operator <*> {
-	associativity left
+precedencegroup BiMapPrecedence {
+	associativity: left
+	higherThan: DefaultPrecedence
+}
+infix operator <*>: BiMapPrecedence
+
+precedencegroup ApplicativePrecedence {
+	associativity: left
+	higherThan: BiMapPrecedence
 }
 
-infix operator <| {
-	associativity left
-	precedence 150
-}
+infix operator <|: ApplicativePrecedence
 
 /// Applies `f` to the value in the given result.
 ///

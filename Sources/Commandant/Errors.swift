@@ -34,7 +34,7 @@ extension CommandantError: CustomStringConvertible {
 			return description
 
 		case let .CommandError(error):
-			return String(error)
+			return String(describing: error)
 		}
 	}
 }

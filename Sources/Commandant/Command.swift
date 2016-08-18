@@ -9,6 +9,10 @@
 import Foundation
 import Result
 
+#if os(Linux)
+private typealias Process = Task
+#endif
+
 /// Represents a subcommand that can be executed with its own set of arguments.
 public protocol CommandType {
 	
@@ -39,7 +43,7 @@ public struct CommandWrapper<ClientError: ClientErrorType> {
 	public let usage: () -> CommandantError<ClientError>?
 
 	/// Creates a command that wraps another.
-	private init<C: CommandType where C.ClientError == ClientError, C.Options.ClientError == ClientError>(_ command: C) {
+	fileprivate init<C: CommandType>(_ command: C) where C.ClientError == ClientError, C.Options.ClientError == ClientError {
 		verb = command.verb
 		function = command.function
 		run = { (arguments: ArgumentParser) -> Result<(), CommandantError<ClientError>> in
@@ -90,7 +94,7 @@ public final class CommandRegistry<ClientError: ClientErrorType> {
 	///
 	/// If another command was already registered with the same `verb`, it will
 	/// be overwritten.
-	public func register<C: CommandType where C.ClientError == ClientError, C.Options.ClientError == ClientError>(command: C) {
+	public func register<C: CommandType>(command: C) where C.ClientError == ClientError, C.Options.ClientError == ClientError {
 		commandsByVerb[command.verb] = CommandWrapper(command)
 	}
 
@@ -127,8 +131,8 @@ extension CommandRegistry {
 	/// If a matching command could not be found or a usage error occurred,
 	/// a helpful error message will be written to `stderr`, then the process
 	/// will exit with a failure error code.
-	@noreturn public func main(defaultVerb: String, errorHandler: (ClientError) -> ()) {
-		main(arguments: Process.arguments, defaultVerb: defaultVerb, errorHandler: errorHandler)
+	public func main(defaultVerb: String, errorHandler: (ClientError) -> ()) -> Never  {
+		main(arguments: CommandLine.arguments, defaultVerb: defaultVerb, errorHandler: errorHandler)
 	}
 	
 	/// Hands off execution to the CommandRegistry, by parsing `arguments`
@@ -148,7 +152,7 @@ extension CommandRegistry {
 	/// If a matching command could not be found or a usage error occurred,
 	/// a helpful error message will be written to `stderr`, then the process
 	/// will exit with a failure error code.
-	@noreturn public func main(arguments: [String], defaultVerb: String, errorHandler: (ClientError) -> ()) {
+	public func main(arguments: [String], defaultVerb: String, errorHandler: (ClientError) -> ()) -> Never  {
 		assert(arguments.count >= 1)
 
 		var arguments = arguments
@@ -195,7 +199,7 @@ extension CommandRegistry {
 		let subcommand = "\(NSString(string: executableName).lastPathComponent)-\(verb)"
 
 		func launchTask(_ path: String, arguments: [String]) -> Int32 {
-			let task = Task()
+			let task = Process()
 			task.launchPath = path
 			task.arguments = arguments
 
